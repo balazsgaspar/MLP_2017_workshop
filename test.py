@@ -11,4 +11,9 @@ sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.eu-central-1.amazonaws.
 sc._jsc.hadoopConfiguration().set("spark.sql.parquet.output.committer.class", "org.apache.spark.sql.parquet.DirectParquetOutputCommitter")
 
 df1 = sqlContext.read.parquet("s3a://mlp2017/test/mlp_cdr_test.parquet")
+df1.createOrReplaceTempView("CDR")
+
+sqlContext.sql("SELECT * FROM CDR LIMIT 4").show()
+
+
 df1.show()
