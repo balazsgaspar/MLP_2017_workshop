@@ -42,15 +42,6 @@ def generate_pivot_table_sql(id_column, key_column, value_column, key_values, pr
     return sql
 
 
-def prepare_sql_drop_table_if_exists(table_name):
-    """
-    Create an SQL query for table drop.
-    :param table_name: string with table name to be dropped.
-    :return: string of an SQL query.
-    """
-    return "DROP TABLE IF EXISTS " + table_name
-  
-
 def execute_sql_query(sqlContext, query_string):
     """
     Executes the SQL query.
@@ -58,7 +49,7 @@ def execute_sql_query(sqlContext, query_string):
     :param query_string: string of sql query to be executed.
     :return: the result of the query.
     """
-    sqlContext.sql(query_string)
+    return sqlContext.sql(query_string)
 
 
 def prepare_left_joined_table_sql(sqlContext, join_on, left_table_name=None, right_table_name=None,

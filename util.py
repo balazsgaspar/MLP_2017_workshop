@@ -1,4 +1,3 @@
-
 from ast import literal_eval
 
 def get_cfg(cfg_file):

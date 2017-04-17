@@ -70,8 +70,6 @@ def prepare_sql_churn_base_data(churn_table_name, base_table_name, churn_from_da
         ) t2
         WHERE commitment_remaining IS NULL OR commitment_remaining < 90
         """
-    sql_all = """
-    CREATE TABLE """ + target_table_name + """ AS """ + sql_all
     return sql_all
 
 
@@ -115,7 +113,6 @@ def prepare_sql_top_call_centers(cdr_from_date, cdr_to_date, cdr_table_name, bas
     """
     # Create a table countig those calls for each non-stk msisdn
     sql_create_nonstk_call_counts = """
-        CREATE TABLE """ + target_table_name + """ AS
         SELECT sel.tomsisdn AS msisdn, COUNT(sel.tomsisdn) as count_calls
         FROM
         (
@@ -152,7 +149,6 @@ def prepare_sql_first_features(cdr_table_name, churn_base_table_name, callcenter
         GROUP BY calls.frommsisdn
     """
     sql_base_data_with_calls = """
-    CREATE TABLE """ + target_table_name + """ AS
     SELECT 
         chtab.msisdn, 
         chtab.supercontract_key,
@@ -198,7 +194,6 @@ def prepare_sql_callcenters_calls_duration(cdr_table_name, cdr_from_date, cdr_to
     sql_calls_duration = generate_pivot_table_sql("msisdn", "tomsisdn", "calls_duration",
                                                   callcenters_df['msisdn'].values, "cc_dur_",
                                                   table_sql=SQL_callcenters_calls_duration)
-    sql_calls_duration = "CREATE TABLE " + target_table_name + " AS " + sql_calls_duration
     return sql_calls_duration
 
 
@@ -222,7 +217,6 @@ def prepare_sql_callcenters_calls_cnt(cdr_table_name, cdr_from_date, cdr_to_date
     sql_callcenters_calls_cnt = generate_pivot_table_sql("msisdn", "tomsisdn", "calls_count",
                                                          callcenters_df['msisdn'].values, "cc_cnt_",
                                                          table_sql=sql_callcenters_calls_cnt)
-    sql_callcenters_calls_cnt = "CREATE TABLE " + target_table_name + " AS " + sql_callcenters_calls_cnt
     return sql_callcenters_calls_cnt
 
 
@@ -299,7 +293,6 @@ def prepare_sql_second_features(base_table_name, cdr_table_name, cdr_from_date, 
         ON ad.msisdn=ntd.msisdn
     """
     select_training_data = """
-    CREATE TABLE """ + target_table_name + """ AS
     SELECT tr.*,
         COALESCE(cld.calls_non_t_dur,0) as calls_non_t_dur,
         COALESCE(cld.calls_non_t_cnt,0) as calls_non_t_cnt,
@@ -341,7 +334,6 @@ def prepare_sql_community_attributes(base_table_name, community_table_name, targ
                 GROUP BY tx.label
     """
     sql_all = """
-        CREATE TABLE """ + target_table_name + """ AS
         SELECT
             t_left.msisdn,
             t_right.degree AS com_degree,
@@ -619,5 +611,5 @@ def create_call_atr_table(lb, ub, target_tab, cdr_tab, msisdn_table):
     """ + join_type + """
     (""" + attrs_all_calls + """) j ON (msisdn_tab.msisdn=j.msisdn)"""
 
-    return 'CREATE TABLE ' + target_tab + ' AS ' + big_join
+    return big_join
   
