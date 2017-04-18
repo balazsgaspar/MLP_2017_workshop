@@ -1,4 +1,6 @@
 from pyspark.sql.types import BooleanType
+from time import gmtime, strftime
+import numpy as np
 
 
 def log(message = ""):
@@ -57,7 +59,7 @@ def fill_na_of_community_attributes(dataframe):
     :param dataframe: Dataframe to be updated.
     :raises: KeyError: if the DataFrame does not contain any of these columns:
     com_degree, com_degree_total, com_count_in_group, com_degree_in_group, com_score,
-    com_group_leader, com_group_loser, com_churned_cnt, com_leader_churned_cnt
+    com_group_leader, com_group_follower, com_churned_cnt, com_leader_churned_cnt
     :return: modified Dataframe.
     """
     dataframe = fillna('com_degree', 'constant', dataframe, value=0)
@@ -66,7 +68,7 @@ def fill_na_of_community_attributes(dataframe):
     dataframe = fillna('com_degree_in_group', 'constant', dataframe, value=0)
     dataframe = fillna('com_score', 'constant', dataframe, value=1.0)
     dataframe = fillna('com_group_leader', 'constant', dataframe, value=True)
-    dataframe = fillna('com_group_loser', 'constant', dataframe, value=True)
+    dataframe = fillna('com_group_follower', 'constant', dataframe, value=True)
     dataframe = fillna('com_churned_cnt', 'constant', dataframe, value=0)
     dataframe = fillna('com_leader_churned_cnt', 'constant', dataframe, value=0)
     return dataframe
@@ -82,7 +84,7 @@ def fill_na_cells(training_data, predict_data, callcenters_columns_prefix, calls
     :param calls_attributes_prefixes: string list of the call-attributes columns.
     :raises: KeyError: if the DataFrame does not contain any of these columns:
     com_degree, com_degree_total, com_count_in_group, com_degree_in_group, com_score,
-    com_group_leader, com_group_loser, com_churned_cnt, com_leader_churned_cnt
+    com_group_leader, com_group_follower, com_churned_cnt, com_leader_churned_cnt
     """
     # columns of callcenters calls - fill with 0.0:
     selected_columns = [column for column in training_data.columns if column.startswith(callcenters_columns_prefix)]
@@ -158,11 +160,13 @@ def run(cfg, cfg_tables, sqlContext):
     log('Running phase 2 - Data preprocessing.')
     # configuration:
     CATEGORICAL_ATTRIBUTES = ["rateplan_group", "rateplan_name", "rateplan_source_name", "committed",
-                              "com_group_leader", "com_group_loser"]
+                              "com_group_leader", "com_group_follower"]
     CALLCENTERS_ATTRIBUTES_PREFIX = "cc_"
     CALLS_ATTRIBUTES_PREFIXES = ["cnt", "dur", "avg", "std"]
     LABEL_ATTRIBUTE = "churned"
-    COLUMNS_TO_BE_DROPPED = ['msisdn', 'supercontract_key', 'customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
+#    COLUMNS_TO_BE_DROPPED = ['msisdn', 'supercontract_key', 'customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
+#                             'calls_all_dur', 'calls_all_cnt']
+    COLUMNS_TO_BE_DROPPED = ['supercontract_key', 'customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
                              'calls_all_dur', 'calls_all_cnt']
     ALL_TRAIN_COLUMNS_WITHOUT_CC = np.array(
         ['msisdn', 'supercontract_key', 'customer_type', 'rateplan_group', 'rateplan_name',
@@ -172,7 +176,7 @@ def run(cfg, cfg_tables, sqlContext):
          'calls_non_t_cnt',
          'calls_all_dur', 'calls_all_cnt', 'com_degree', 'com_degree_total',
          'com_count_in_group', 'com_degree_in_group', 'com_score', 'com_group_leader',
-         'com_group_loser', 'com_churned_cnt', 'com_leader_churned_cnt',
+         'com_group_follower', 'com_churned_cnt', 'com_leader_churned_cnt',
          'cnt_incoming_calls_all',
          'dur_incoming_calls_all', 'avg_dur_incoming_calls_all', 'std_dur_incoming_calls_all',
          'cnt_outgoing_calls_all', 'dur_outgoing_calls_all', 'avg_dur_outgoing_calls_all',
@@ -222,8 +226,8 @@ def run(cfg, cfg_tables, sqlContext):
     training_data, predict_data = fill_na_cells(training_data, predict_data, CALLCENTERS_ATTRIBUTES_PREFIX, CALLS_ATTRIBUTES_PREFIXES)
     
     log("Converting columns to boolean")
-    training_data = convert_columns_to_boolean(training_data, ['com_group_leader', 'com_group_loser', 'committed'])
-    predict_data = convert_columns_to_boolean(predict_data, ['com_group_leader', 'com_group_loser', 'committed'])
+    training_data = convert_columns_to_boolean(training_data, ['com_group_leader', 'com_group_follower', 'committed'])
+    predict_data = convert_columns_to_boolean(predict_data, ['com_group_leader', 'com_group_follower', 'committed'])
     
     log("Creating ratio call attributes")
     training_data = create_ratio_call_attributes(training_data)
