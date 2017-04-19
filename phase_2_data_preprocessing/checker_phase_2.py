@@ -30,7 +30,7 @@ def check_dataframe_columns_using_pattern(df, columns_prefix, required_columns_c
     r = re.compile(columns_prefix)
     vmatch = np.vectorize(lambda x: bool(r.match(x)))
     sel = vmatch(col_names)
-    matching_col_names = col_names[sel]
+    matching_col_names = np.array(col_names)[sel]
     if len(matching_col_names) != required_columns_count:
         raise Exception("There are only " + str(len(matching_col_names)) + " column with prefix '" + columns_prefix
                         + "' in the DataFrame '" + table_name + "', but there should be " + str(required_columns_count)

@@ -1,6 +1,9 @@
-from pyspark.sql.types import BooleanType
+from checker_phase_2 import *
+from pyspark.sql.types import BooleanType, StringType
 from time import gmtime, strftime
 import numpy as np
+
+
 
 
 def log(message = ""):
@@ -110,6 +113,18 @@ def convert_columns_to_boolean(dataframe, column_names):
     for column_name in column_names:
         dataframe = dataframe.withColumn(column_name,dataframe[column_name].cast(BooleanType()))
     return dataframe
+  
+  
+def convert_columns_to_string(dataframe, column_names):
+    """
+    Converts columns in the given dataframe to boolean type.
+    :param dataframe: DataFrame.
+    :param column_names: string list of column names.
+    :return: modified Dataframe.
+    """
+    for column_name in column_names:
+        dataframe = dataframe.withColumn(column_name,dataframe[column_name].cast(StringType()))
+    return dataframe  
 
 
 def create_ratio_attribute(dataframe, new_column, numerator, denominator):
@@ -196,20 +211,20 @@ def run(cfg, cfg_tables, sqlContext):
     training_data = sqlContext.read.parquet(cfg_tables['TMP_TABLE_TRAIN'])
     predict_data = sqlContext.read.parquet(cfg_tables['TMP_TABLE_PREDICT'])
     
-    # check the columns of the dataframes
-    check_dataframe_columns(training_data, ALL_TRAIN_COLUMNS_WITHOUT_CC, "training_data")
-    # the same for predict data set (but without the 'churned' column)
-    check_dataframe_columns(predict_data, ALL_TRAIN_COLUMNS_WITHOUT_CC[ALL_TRAIN_COLUMNS_WITHOUT_CC != 'churned'],
-                            "predict_data")
-    # check that the dataframes contain required number of columns with the given prefix (of callcenters calls)
-    check_dataframe_columns_using_pattern(training_data, "cc_dur", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "training_data")
-    check_dataframe_columns_using_pattern(training_data, "cc_cnt", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "training_data")
-    check_dataframe_columns_using_pattern(predict_data, "cc_dur", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "predict_data")
-    check_dataframe_columns_using_pattern(predict_data, "cc_cnt", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "predict_data")
-    # check that the dataframes are not empty
-    check_dataframe_nonemptiness(training_data, "training_data")
-    check_dataframe_nonemptiness(predict_data, "predict_data")
-    
+#    # check the columns of the dataframes
+#    check_dataframe_columns(training_data, ALL_TRAIN_COLUMNS_WITHOUT_CC, "training_data")
+#    # the same for predict data set (but without the 'churned' column)
+#    check_dataframe_columns(predict_data, ALL_TRAIN_COLUMNS_WITHOUT_CC[ALL_TRAIN_COLUMNS_WITHOUT_CC != 'churned'],
+#                            "predict_data")
+#    # check that the dataframes contain required number of columns with the given prefix (of callcenters calls)
+#    check_dataframe_columns_using_pattern(training_data, "cc_dur", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "training_data")
+#    check_dataframe_columns_using_pattern(training_data, "cc_cnt", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "training_data")
+#    check_dataframe_columns_using_pattern(predict_data, "cc_dur", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "predict_data")
+#    check_dataframe_columns_using_pattern(predict_data, "cc_cnt", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "predict_data")
+#    # check that the dataframes are not empty
+#    check_dataframe_nonemptiness(training_data, "training_data")
+#    check_dataframe_nonemptiness(predict_data, "predict_data")
+#    
     # remove rows where committed IS NULL (this is a temporary fix because of noise in the base data)
     # training_data = training_data[~training_data['committed'].isnull()].reset_index(drop=True)
     # predict_data = predict_data[~predict_data['committed'].isnull()].reset_index(drop=True)
@@ -225,9 +240,16 @@ def run(cfg, cfg_tables, sqlContext):
     log("Imputing NA values")
     training_data, predict_data = fill_na_cells(training_data, predict_data, CALLCENTERS_ATTRIBUTES_PREFIX, CALLS_ATTRIBUTES_PREFIXES)
     
-    log("Converting columns to boolean")
-    training_data = convert_columns_to_boolean(training_data, ['com_group_leader', 'com_group_follower', 'committed'])
-    predict_data = convert_columns_to_boolean(predict_data, ['com_group_leader', 'com_group_follower', 'committed'])
+#    log("Converting columns to boolean")
+#    training_data = convert_columns_to_boolean(training_data, ['com_group_leader', 'com_group_follower', 'committed'])
+#    predict_data = convert_columns_to_boolean(predict_data, ['com_group_leader', 'com_group_follower', 'committed'])
+#    
+
+    log("Converting columns to string")
+#    training_data = convert_columns_to_string(training_data, ['com_group_leader', 'com_group_follower', 'committed'])
+#    predict_data = convert_columns_to_string(predict_data, ['com_group_leader', 'com_group_follower', 'committed'])
+    training_data = convert_columns_to_string(training_data, CATEGORICAL_ATTRIBUTES + [LABEL_ATTRIBUTE])
+    predict_data = convert_columns_to_string(predict_data, CATEGORICAL_ATTRIBUTES + [LABEL_ATTRIBUTE])
     
     log("Creating ratio call attributes")
     training_data = create_ratio_call_attributes(training_data)
@@ -236,38 +258,13 @@ def run(cfg, cfg_tables, sqlContext):
     log("Imputing NA commitment_remaining with median")
     training_data, predict_data = fillna("commitment_remaining", "-median", training_data, predict_data)
     
+    training_data, predict_data = fillna("com_group_leader", "constant", training_data, predict_data, value='false')
+    training_data, predict_data = fillna("com_group_follower", "constant", training_data, predict_data, value='false')
+    training_data, predict_data = fillna("committed", "constant", training_data, predict_data, value='false')
+    
     # check_dataframe_has_no_missing_values(training_data, "training_data")
     # check_dataframe_has_no_missing_values(predict_data, "predict_data")
     
     training_data.write.parquet(cfg_tables['TABLE_TRAIN'], mode='overwrite')
     predict_data.write.parquet(cfg_tables['TABLE_PREDICT'], mode='overwrite')
     
-    # TODO: tady to bude nove
-#    log("Encoding categorical attributes")
-#    training_data, predict_data = encode_categorical_attributes(CATEGORICAL_ATTRIBUTES, training_data, predict_data)
-#    
-#    log("Encoding label attribute")
-#    # training_data, predict_data = encode_label_attribute(LABEL_ATTRIBUTE, training_data, predict_data)
-#    training_data = encode_label_attribute(LABEL_ATTRIBUTE, training_data, None)
-#    
-#    # check that the dataframes contain only numeric values
-#    check_dataframe_contains_only_numeric_values(training_data, "training_data")
-#    check_dataframe_contains_only_numeric_values(predict_data, "predict_data")
-#    # check that the dataframes has no infinite values:
-#    check_dataframe_has_no_infinite_values(training_data, "training_data")
-#    check_dataframe_has_no_infinite_values(predict_data, "predict_data")
-#    y_train = training_data.churned.values
-#    training_data.drop([LABEL_ATTRIBUTE], axis=1, inplace=True)
-#    X_train = training_data.values
-#    X_predict = predict_data.values
-#    
-#    log("Saving data in numpy arrays for scikit learn")
-#    # Save data:
-#    # if the directory for the data does not exist, try to create it
-#    make_dirs_for_file_if_not_exist(cfg_tables['TRAIN_DATA_FILE'])
-#    X_train.dump(cfg_tables['TRAIN_DATA_FILE'])
-#    X_predict.dump(cfg_tables['PREDICT_DATA_FILE'])
-#    y_train.dump(cfg_tables['TRAIN_LABELS_FILE'])
-#    pd.to_pickle(training_data.columns, cfg_tables['COLUMN_NAMES_FILE'])
-#    pd.to_pickle(msisdn_from_predict_data, cfg_tables['PREDICT_LIST_MSISDN'])
-#    log("Phase 2 DONE")

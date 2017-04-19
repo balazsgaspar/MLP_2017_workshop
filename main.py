@@ -2,11 +2,8 @@ from pyspark import SparkContext
 from pyspark.sql import HiveContext
 from util import get_cfg, add_table_suffixes
 from phase_1_data_preparation import phase_1_data_preparation
-#from phase_2_data_cleaning import phase_2_data_cleaning
-#from phase_3_training import phase_3_training
-#from phase_4_prediction import phase_4_prediction
-#from phase_5_cleanup import phase_5_cleanup
-
+from phase_2_data_preprocessing import phase_2_data_preprocessing
+from phase_3_classification import phase_3_classification
 
 
 sc = SparkContext(appName="Churn Prediction")
@@ -30,13 +27,13 @@ cfg_tables = get_cfg(CONFIG_FILE_TMP_FILES)
 cfg, cfg_tables = add_table_suffixes(cfg,cfg_tables)
 
 
-#print('Running churn prediction phases.')
+print('Running churn prediction phases.')
 #phase_1_data_preparation.run(cfg, cfg_tables, sqlContext)
 #print('Phase 1 finised.')
-phase_2_data_cleaning.run(cfg, cfg_tables, sqlContext)
-print('Phase 2 finised.')
-#phase_3_training.run(cfg, cfg_tables, sqlContext)
-#print('Phase 3 finised.')
+#phase_2_data_preprocessing.run(cfg, cfg_tables, sqlContext)
+#print('Phase 2 finised.')
+predictions = phase_3_classification.run(cfg, cfg_tables, sqlContext)
+print('Phase 3 finised.')
 #phase_4_prediction.run(cfg, cfg_tables, sqlContext)
 #print('Phase 4 finised.')
 #phase_5_cleanup.run(cfg, cfg_tables, sqlContext)

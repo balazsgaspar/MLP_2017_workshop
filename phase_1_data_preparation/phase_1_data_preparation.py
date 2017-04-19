@@ -115,23 +115,36 @@ def run(cfg, cfg_tables, sqlContext):
     
     log("Preparing predict data")
     log("Preparing churn-base table")
-    sql_test_1 = prepare_sql_churn_base_data(churn_table_name=None, base_table_name=cfg['BASE_TAB_DATE_C'],
+    sql_test_1 = prepare_sql_churn_base_data(churn_table_name=cfg['CHURNS_TABLE'], base_table_name=cfg['BASE_TAB_DATE_C'],
                                               churn_from_date=cfg['DATE_C'],
-                                              churn_to_date=None,
+                                              churn_to_date=cfg['DATE_D'],
                                               restrict_commitment_to=cfg['RESTRICT_COMMITMENT_TO'],
                                               target_table_name=cfg_tables['TMP_TEST_CHURN_BASE_TABLE'])
     sql_test_1_df = execute_sql_query(sqlContext, sql_test_1)
+#    sql_test_1 = prepare_sql_churn_base_data(churn_table_name=None, base_table_name=cfg['BASE_TAB_DATE_C'],
+#                                              churn_from_date=cfg['DATE_C'],
+#                                              churn_to_date=None,
+#                                              restrict_commitment_to=cfg['RESTRICT_COMMITMENT_TO'],
+#                                              target_table_name=cfg_tables['TMP_TEST_CHURN_BASE_TABLE'])
+#    sql_test_1_df = execute_sql_query(sqlContext, sql_test_1)
     sql_test_1_df.createOrReplaceTempView(cfg_tables['TMP_TEST_CHURN_BASE_TABLE'])
     
     
     log("Preparing table with first features")
+#    sql_test_3 = prepare_sql_first_features(cdr_table_name=cfg['CDR_TABLE'],
+#                                             churn_base_table_name=cfg_tables['TMP_TEST_CHURN_BASE_TABLE'],
+#                                             callcenters_table_name=cfg_tables['TMP_COMMON_CALLCENTERS_TABLE'],
+#                                             cdr_from_date=cfg['DATE_B'],
+#                                             cdr_to_date=cfg['DATE_C'],
+#                                             target_table_name=cfg_tables['TMP_TEST_TARGET_TABLE_1'],
+#                                             contains_churn_info=False)
     sql_test_3 = prepare_sql_first_features(cdr_table_name=cfg['CDR_TABLE'],
                                              churn_base_table_name=cfg_tables['TMP_TEST_CHURN_BASE_TABLE'],
                                              callcenters_table_name=cfg_tables['TMP_COMMON_CALLCENTERS_TABLE'],
                                              cdr_from_date=cfg['DATE_B'],
                                              cdr_to_date=cfg['DATE_C'],
                                              target_table_name=cfg_tables['TMP_TEST_TARGET_TABLE_1'],
-                                             contains_churn_info=False)
+                                             contains_churn_info=True)
     sql_test_3_df = execute_sql_query(sqlContext, sql_test_3)
     sql_test_3_df.createOrReplaceTempView(cfg_tables['TMP_TEST_TARGET_TABLE_1'])
     

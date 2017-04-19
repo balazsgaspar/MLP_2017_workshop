@@ -9,6 +9,6 @@ def get_cfg(cfg_file):
 def add_table_suffixes(cfg, cfg_tmp):
     suffix = cfg['DATE_C']
     tmp = {key: value + '_' + suffix for key, value in cfg_tmp.items()}
-    tmp['MODEL_PARAMS_FILE']=cfg_tmp['MODEL_PARAMS_FILE']
+#    tmp['MODEL_PARAMS_FILE']=cfg_tmp['MODEL_PARAMS_FILE']
     conf = cfg
     return conf, tmp
