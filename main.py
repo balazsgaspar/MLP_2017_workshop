@@ -15,8 +15,8 @@ CONFIG_FILE_PATH = './config/config.cfg'
 CONFIG_FILE_TMP_FILES = './config/config_tmp_files.cfg'
 
 
-sc._jsc.hadoopConfiguration().set("fs.s3a.access.key", "AKIAJW272QGBW2JQHWRA")
-sc._jsc.hadoopConfiguration().set("fs.s3a.secret.key", "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")
+sc._jsc.hadoopConfiguration().set("fs.s3a.access.key", "...")
+sc._jsc.hadoopConfiguration().set("fs.s3a.secret.key", "...")
 sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.eu-central-1.amazonaws.com")
 # sc._jsc.hadoopConfiguration().set("spark.sql.parquet.output.committer.class", "org.apache.spark.sql.parquet.DirectParquetOutputCommitter")
 
