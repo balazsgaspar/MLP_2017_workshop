@@ -8,14 +8,12 @@ def prepare_sql_churn_base_data(churn_table_name, base_table_name, churn_from_da
     sql_select_basic_attributes = """
         SELECT
                 tb.msisdn,
-                MAX(tb.supercontract_key) as supercontract_key,
                 """ + ("MAX(tc.date_key) as churn_date," if churn_table_name is not None else "") + """
                 MAX(tb.commitment_to_key) as commitment_to_date,
                 MAX(tb.commitment_from_key) as commitment_from_date,
                 MAX(tb.customer_type) as customer_type,
                 MAX(tb.rateplan_group) as rateplan_group,
-                MAX(tb.rateplan_name) as rateplan_name,
-                MAX(tb.rateplan_source_name) as rateplan_source_name
+                MAX(tb.rateplan_name) as rateplan_name
         FROM
         """ + base_table_name + """ tb
     """
@@ -23,8 +21,7 @@ def prepare_sql_churn_base_data(churn_table_name, base_table_name, churn_from_da
         sql_select_basic_attributes += """
             LEFT JOIN
             """ + churn_table_name + """ tc
-            ON tb.supercontract_key = tc.supercontract_key
-               AND tb.msisdn = tc.msisdn
+            ON tb.msisdn = tc.msisdn
             WHERE tb.customer_type = 'PRIVATE' AND (tc.date_key IS NULL OR tc.date_key >= """ + churn_from_date + """)
             GROUP BY tb.msisdn
         """
@@ -44,7 +41,6 @@ def prepare_sql_churn_base_data(churn_table_name, base_table_name, churn_from_da
         churned_str = ""
     sql_all = """
     SELECT SUBSTR(t.msisdn, 2, 12) as msisdn,
-           supercontract_key,
         """ + churned_str + """
         commitment_to_date != 0 AS committed,
         COALESCE(datediff(from_unixtime(unix_timestamp(commitment_to_date, "yyyyMMdd")),
@@ -53,8 +49,7 @@ def prepare_sql_churn_base_data(churn_table_name, base_table_name, churn_from_da
                           from_unixtime(unix_timestamp('""" + churn_from_date + """', "yyyyMMdd"))) AS commitment_remaining,
         customer_type,
         rateplan_group,
-        rateplan_name,
-        rateplan_source_name
+        rateplan_name
     FROM
     (
         """ + sql_select_basic_attributes + """
@@ -151,11 +146,9 @@ def prepare_sql_first_features(cdr_table_name, churn_base_table_name, callcenter
     sql_base_data_with_calls = """
     SELECT 
         chtab.msisdn, 
-        chtab.supercontract_key,
         chtab.customer_type,
         chtab.rateplan_group,
         chtab.rateplan_name,
-        chtab.rateplan_source_name,
         """ + ("chtab.churned," if contains_churn_info else "") + """
         chtab.committed,
         chtab.committed_days,

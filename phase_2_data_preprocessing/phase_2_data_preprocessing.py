@@ -159,18 +159,18 @@ def run(cfg, cfg_tables, sqlContext):
     """
     log('Running phase 2 - Data preprocessing.')
     # configuration:
-    CATEGORICAL_ATTRIBUTES = ["rateplan_group", "rateplan_name", "rateplan_source_name", "committed",
+    CATEGORICAL_ATTRIBUTES = ["rateplan_group", "rateplan_name", "committed",
                               "com_group_leader", "com_group_follower"]
     CALLCENTERS_ATTRIBUTES_PREFIX = "cc_"
     CALLS_ATTRIBUTES_PREFIXES = ["cnt", "dur", "avg", "std"]
     LABEL_ATTRIBUTE = "churned"
-#    COLUMNS_TO_BE_DROPPED = ['msisdn', 'supercontract_key', 'customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
+#    COLUMNS_TO_BE_DROPPED = ['msisdn', 'customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
 #                             'calls_all_dur', 'calls_all_cnt']
-    COLUMNS_TO_BE_DROPPED = ['supercontract_key', 'customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
+    COLUMNS_TO_BE_DROPPED = ['customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
                              'calls_all_dur', 'calls_all_cnt']
     ALL_TRAIN_COLUMNS_WITHOUT_CC = np.array(
-        ['msisdn', 'supercontract_key', 'customer_type', 'rateplan_group', 'rateplan_name',
-         'rateplan_source_name', 'churned', 'committed', 'committed_days',
+        ['msisdn', 'customer_type', 'rateplan_group', 'rateplan_name',
+         'churned', 'committed', 'committed_days',
          'commitment_remaining',
          'callcenter_calls_count', 'callcenter_calls_duration', 'calls_non_t_dur',
          'calls_non_t_cnt',
@@ -239,32 +239,35 @@ def run(cfg, cfg_tables, sqlContext):
     # check_dataframe_has_no_missing_values(training_data, "training_data")
     # check_dataframe_has_no_missing_values(predict_data, "predict_data")
     
+    training_data.write.parquet(cfg_tables['TABLE_TRAIN'], mode='overwrite')
+    predict_data.write.parquet(cfg_tables['TABLE_PREDICT'], mode='overwrite')
+    
     # TODO: tady to bude nove
-    log("Encoding categorical attributes")
-    training_data, predict_data = encode_categorical_attributes(CATEGORICAL_ATTRIBUTES, training_data, predict_data)
-    
-    log("Encoding label attribute")
-    # training_data, predict_data = encode_label_attribute(LABEL_ATTRIBUTE, training_data, predict_data)
-    training_data = encode_label_attribute(LABEL_ATTRIBUTE, training_data, None)
-    
-    # check that the dataframes contain only numeric values
-    check_dataframe_contains_only_numeric_values(training_data, "training_data")
-    check_dataframe_contains_only_numeric_values(predict_data, "predict_data")
-    # check that the dataframes has no infinite values:
-    check_dataframe_has_no_infinite_values(training_data, "training_data")
-    check_dataframe_has_no_infinite_values(predict_data, "predict_data")
-    y_train = training_data.churned.values
-    training_data.drop([LABEL_ATTRIBUTE], axis=1, inplace=True)
-    X_train = training_data.values
-    X_predict = predict_data.values
-    
-    log("Saving data in numpy arrays for scikit learn")
-    # Save data:
-    # if the directory for the data does not exist, try to create it
-    make_dirs_for_file_if_not_exist(cfg_tables['TRAIN_DATA_FILE'])
-    X_train.dump(cfg_tables['TRAIN_DATA_FILE'])
-    X_predict.dump(cfg_tables['PREDICT_DATA_FILE'])
-    y_train.dump(cfg_tables['TRAIN_LABELS_FILE'])
-    pd.to_pickle(training_data.columns, cfg_tables['COLUMN_NAMES_FILE'])
-    pd.to_pickle(msisdn_from_predict_data, cfg_tables['PREDICT_LIST_MSISDN'])
-    log("Phase 2 DONE")
+#    log("Encoding categorical attributes")
+#    training_data, predict_data = encode_categorical_attributes(CATEGORICAL_ATTRIBUTES, training_data, predict_data)
+#    
+#    log("Encoding label attribute")
+#    # training_data, predict_data = encode_label_attribute(LABEL_ATTRIBUTE, training_data, predict_data)
+#    training_data = encode_label_attribute(LABEL_ATTRIBUTE, training_data, None)
+#    
+#    # check that the dataframes contain only numeric values
+#    check_dataframe_contains_only_numeric_values(training_data, "training_data")
+#    check_dataframe_contains_only_numeric_values(predict_data, "predict_data")
+#    # check that the dataframes has no infinite values:
+#    check_dataframe_has_no_infinite_values(training_data, "training_data")
+#    check_dataframe_has_no_infinite_values(predict_data, "predict_data")
+#    y_train = training_data.churned.values
+#    training_data.drop([LABEL_ATTRIBUTE], axis=1, inplace=True)
+#    X_train = training_data.values
+#    X_predict = predict_data.values
+#    
+#    log("Saving data in numpy arrays for scikit learn")
+#    # Save data:
+#    # if the directory for the data does not exist, try to create it
+#    make_dirs_for_file_if_not_exist(cfg_tables['TRAIN_DATA_FILE'])
+#    X_train.dump(cfg_tables['TRAIN_DATA_FILE'])
+#    X_predict.dump(cfg_tables['PREDICT_DATA_FILE'])
+#    y_train.dump(cfg_tables['TRAIN_LABELS_FILE'])
+#    pd.to_pickle(training_data.columns, cfg_tables['COLUMN_NAMES_FILE'])
+#    pd.to_pickle(msisdn_from_predict_data, cfg_tables['PREDICT_LIST_MSISDN'])
+#    log("Phase 2 DONE")

@@ -26,3 +26,20 @@ def create_spark_ml_preprocessing_stages(label_attribute, categorical_attributes
     stages.append(indexer)
     
     return stages
+  
+
+def run(cfg, cfg_tables, sqlContext):
+    """
+    Main computation block of the 2nd phase.
+    :param cfg: dictionary of configuration constants.
+    :param cfg_tables: dictionary of tmp table names.
+    :param sqlContext: current pyspark sqlContext.
+    """
+    log('Running phase 3 - Classification.')
+    
+    # 
+    
+    # load data:
+    log("Loading data")
+    training_data = sqlContext.read.parquet(cfg_tables['TABLE_TRAIN'])
+    predict_data = sqlContext.read.parquet(cfg_tables['TABLE_PREDICT'])
