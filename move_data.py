@@ -7,8 +7,8 @@ sc = SparkContext(appName="Move data")
 sqlContext = HiveContext(sc)
 
 
-sc._jsc.hadoopConfiguration().set("fs.s3a.access.key", "AKIAJW272QGBW2JQHWRA")
-sc._jsc.hadoopConfiguration().set("fs.s3a.secret.key", "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")
+sc._jsc.hadoopConfiguration().set("fs.s3a.access.key", "...")
+sc._jsc.hadoopConfiguration().set("fs.s3a.secret.key", "...")
 sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.eu-central-1.amazonaws.com")
 
 df1 = sqlContext.read.parquet("s3a://mlp2017/pub/mlp_sample_cdr_records.parquet")

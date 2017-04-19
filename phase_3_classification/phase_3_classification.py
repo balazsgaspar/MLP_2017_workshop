@@ -18,7 +18,7 @@ def create_spark_ml_preprocessing_stages(label_attribute, categorical_attributes
   
     stages = []
     for x in categorical_attributes:
-        indexer = StringIndexer(inputCol=x, outputCol=x + "_index")
+        indexer = StringIndexer(inputCol=x, outputCol=x + "_index").setHandleInvalid("skip")
         encoder = OneHotEncoder(inputCol=x + "_index", outputCol=x + "_vec")
         stages.append(indexer)
         stages.append(encoder)
@@ -32,6 +32,19 @@ def create_spark_ml_preprocessing_stages(label_attribute, categorical_attributes
     
     return stages
   
+
+def sample_data(data):
+    n_churned = data.filter("churned = 'true'").count()
+    n_nonchurned = data.filter("churned = 'false'").count()
+    undersample_ratio = n_churned * 15.0 / n_nonchurned
+    # oversample the churned (smaller) class
+    churned_oversample = data.filter("churned = 'true'").sample(True, 10.0)
+    # undersample the nonchurned (larger) class
+    nonchurned_undersample = data.filter("churned = 'false'").sample(True, undersample_ratio)
+    # union of both samples is the result
+    final_sample = churned_oversample.unionAll(nonchurned_undersample)
+    return final_sample
+
 
 def run(cfg, cfg_tables, sqlContext):
     """
@@ -54,10 +67,12 @@ def run(cfg, cfg_tables, sqlContext):
     
     rf = RandomForestClassifier(numTrees=10)
     
-    print(type(rf))
-    print(rf)
     pipeline = Pipeline(stages=stages + [rf])
-    model = pipeline.fit(training_data)
+
+    training_data_sampled = sample_data(training_data)
+    print(training_data_sampled.groupBy("churned").count().show())
+
+    model = pipeline.fit(training_data_sampled)
     predictions = model.transform(predict_data)
     return predictions
     

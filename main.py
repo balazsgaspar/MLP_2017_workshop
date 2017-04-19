@@ -40,11 +40,7 @@ print('Phase 3 finised.')
 #print('Phase 5 finised.')
 #print("Process done")
 
+top_potential_churners = predictions.filter("prediction = 1.0").orderBy("probability", ascending = False).limit(300)
+top_potential_churners.groupBy("label").count().show()
 
-
-#import pandas as pd
-#
-#df = sqlContext.createDataFrame(pd.DataFrame({'x': [1,2], 'y': [3,4]}))
-#
-#df.write.parquet('karel_tmp.parquet')
 
