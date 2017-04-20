@@ -1,6 +1,5 @@
 import org.apache.spark._
 import org.apache.spark.graphx._
-// To make some of the examples work we will also need RDD
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types._
 import org.apache.spark.sql.functions
@@ -87,7 +86,6 @@ def compute_community_features(edges: org.apache.spark.sql.DataFrame) : org.apac
     val inner_cluster_edges = remove_intercluster_edges(edges, lpa_result)
     val g_edges_restricted = inner_cluster_edges.map{ case Row(src: Long, dst: Long) => Edge(src, dst, 0)}.rdd  
 
-//    val graph_restricted = Graph(g_vertices, g_edges_restricted, default_vertex)
     val graph_restricted = Graph(graph.vertices, g_edges_restricted, default_vertex)
     val community_degrees = graph_restricted.degrees.toDF("v_id_2", "degree")
 
@@ -122,8 +120,6 @@ def run(date_from: String, date_to: String, cdr_table: String, output_file: Stri
 val df1 = sqlContext.read.parquet("mlp_sampled_cdr_records.parquet")
 df1.createOrReplaceTempView("comm_cdr_records")
   
-// run("20160201", "20160301", "comm_cdr_records", "lpa_result_20160201_20160301_min_cnt_10")
-
 log("Starting community detection")
 run("20160301", "20160401", "comm_cdr_records", "lpa_20160301_20160401.parquet")
 run("20160401", "20160501", "comm_cdr_records", "lpa_20160401_20160501.parquet")
