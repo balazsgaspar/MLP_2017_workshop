@@ -335,7 +335,7 @@ def prepare_sql_community_attributes(base_table_name, community_table_name, targ
             t_right.degree_in_group AS com_degree_in_group,
             t_right.score AS com_score,
             t_right.group_leader AS com_group_leader,
-            t_right.group_looser AS com_group_follower,
+            t_right.group_follower AS com_group_follower,
             t_right.churned_cnt AS com_churned_cnt,
             t_right.leader_churned_cnt AS com_leader_churned_cnt
         FROM

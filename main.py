@@ -6,6 +6,9 @@ from phase_2_data_preprocessing import phase_2_data_preprocessing
 from phase_3_classification import phase_3_classification
 
 
+from pyspark.sql.types import FloatType
+from pyspark.sql.functions import udf
+
 sc = SparkContext(appName="Churn Prediction")
 sqlContext = HiveContext(sc)
 
@@ -15,12 +18,6 @@ CONFIG_FILE_PATH = './config/config.cfg'
 CONFIG_FILE_TMP_FILES = './config/config_tmp_files.cfg'
 
 
-sc._jsc.hadoopConfiguration().set("fs.s3a.access.key", "...")
-sc._jsc.hadoopConfiguration().set("fs.s3a.secret.key", "...")
-sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.eu-central-1.amazonaws.com")
-# sc._jsc.hadoopConfiguration().set("spark.sql.parquet.output.committer.class", "org.apache.spark.sql.parquet.DirectParquetOutputCommitter")
-
-
 cfg = get_cfg(CONFIG_FILE_PATH)
 cfg_tables = get_cfg(CONFIG_FILE_TMP_FILES)
 
@@ -28,19 +25,30 @@ cfg, cfg_tables = add_table_suffixes(cfg,cfg_tables)
 
 
 print('Running churn prediction phases.')
-#phase_1_data_preparation.run(cfg, cfg_tables, sqlContext)
-#print('Phase 1 finised.')
-#phase_2_data_preprocessing.run(cfg, cfg_tables, sqlContext)
-#print('Phase 2 finised.')
+phase_1_data_preparation.run(cfg, cfg_tables, sqlContext)
+print('Phase 1 finised.')
+phase_2_data_preprocessing.run(cfg, cfg_tables, sqlContext)
+print('Phase 2 finised.')
 predictions = phase_3_classification.run(cfg, cfg_tables, sqlContext)
 print('Phase 3 finised.')
-#phase_4_prediction.run(cfg, cfg_tables, sqlContext)
-#print('Phase 4 finised.')
-#phase_5_cleanup.run(cfg, cfg_tables, sqlContext)
-#print('Phase 5 finised.')
-#print("Process done")
-
-top_potential_churners = predictions.filter("prediction = 1.0").orderBy("probability", ascending = False).limit(300)
-top_potential_churners.groupBy("label").count().show()
 
 
+split1_udf = udf(lambda value: value[0].item(), FloatType())
+split2_udf = udf(lambda value: value[1].item(), FloatType())
+
+predictions = predictions.withColumn("probability_nonchurned", split1_udf('probability').alias('c1'))
+predictions = predictions.withColumn("probability_churned", split2_udf('probability').alias('c2'))
+#output2 = randomforestoutput.select(split1_udf('probability').alias('c1'), split2_udf('probability').alias('c2'))
+
+predictions.groupBy("label").count().show()
+
+N = 1000
+#predictions.filter("prediction = 1.0").orderBy("probability_churned", ascending = False)\
+#   .select("label", "churned", "probability_nonchurned", "probability_churned", "probability").show()
+
+top_potential_churners = predictions.filter("prediction = 1.0").orderBy("probability_churned", ascending = False).limit(N)
+predictions_counts = top_potential_churners.groupBy("label").count()
+predictions_counts = predictions_counts.withColumn("fraction", predictions_counts["count"] * 1.0 / N)
+predictions_counts.show()
+
+stats = predictions.groupBy("label", "prediction").count().toPandas()

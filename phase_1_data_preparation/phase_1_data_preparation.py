@@ -17,21 +17,13 @@ def run(cfg, cfg_tables, sqlContext):
     :param sqlContext: current pyspark sqlContext.
     """
     log("Preparing data to DB")    
-#    df1 = sqlContext.read.parquet("s3a://mlp2017/pub/mlp_sample_cdr_records.parquet")
-#    df2 = sqlContext.read.parquet("s3a://mlp2017/pub/mlp_sample_ebr_base_20160301.parquet")
-#    df3 = sqlContext.read.parquet("s3a://mlp2017/pub/mlp_sample_ebr_base_20160401.parquet")
-#    df4 = sqlContext.read.parquet("s3a://mlp2017/pub/mlp_sample_ebr_churners_20151201_20160630.parquet")
-#    df5 = sqlContext.read.parquet("s3a://mlp2017/pub/mlp_sample_lpa_result_20160201_20160301_min_cnt_10")
-#    df6 = sqlContext.read.parquet("s3a://mlp2017/pub/mlp_sample_lpa_result_20160301_20160401_min_cnt_10")
     
-    df1 = sqlContext.read.parquet("mlp_sample_cdr_records.parquet")
-    df2 = sqlContext.read.parquet("mlp_sample_ebr_base_20160301.parquet")
-    df3 = sqlContext.read.parquet("mlp_sample_ebr_base_20160401.parquet")
-    df4 = sqlContext.read.parquet("mlp_sample_ebr_churners_20151201_20160630.parquet")
-    df5 = sqlContext.read.parquet("mlp_sample_lpa_result_20160201_20160301_min_cnt_10.parquet")
-    df6 = sqlContext.read.parquet("mlp_sample_lpa_result_20160301_20160401_min_cnt_10.parquet")
-
-    
+    df1 = sqlContext.read.parquet("mlp_sampled_cdr_records.parquet")
+    df2 = sqlContext.read.parquet("mlp_sampled_ebr_base_20160401.parquet")
+    df3 = sqlContext.read.parquet("mlp_sampled_ebr_base_20160501.parquet")
+    df4 = sqlContext.read.parquet("mlp_sampled_ebr_churners_20151201_20160630.parquet")
+    df5 = sqlContext.read.parquet("lpa_20160301_20160401.parquet")
+    df6 = sqlContext.read.parquet("lpa_20160401_20160501.parquet")
     
     df1.createOrReplaceTempView(cfg['CDR_TABLE'])
     df2.createOrReplaceTempView(cfg['BASE_TAB_DATE_B'])
