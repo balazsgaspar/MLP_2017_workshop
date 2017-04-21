@@ -111,7 +111,7 @@ We select TOP 12 such 'callcenters' from data.
 ... rest of the features represent various characteristics about phone calls.
 Duration of calls is always expressed in seconds.
 More specifically, "dur" represents duration, "cnt" count, "avg" average, "std" standard deviation.
-There may be phone calls to people belonging to the same operator ("_t_") or different operator ("_not_t_"), or it is not differentiated ("all").
+There may be phone calls to people belonging to the same operator ("\_t\_") or different operator ("\_not\_t\_"), or it is not differentiated ("all").
 Moreover, there may be distinction between incoming and outgoing calls.
 
 
