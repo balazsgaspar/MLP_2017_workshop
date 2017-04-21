@@ -79,5 +79,36 @@ Evaluation of the model is performed outside of those phases for the sake of det
 Directory *scripts* contains various python scripts for data exploration.
 Script *move_data.py* illustrates how to save parquet data from a remote AWS S3 repository to local repository.
 
+## Description of Features
+
+NOTE: 'callcenters' are numbers behaving like callcenters - i.e. they call to a huge number of phone numbers.
+We select TOP 12 such 'callcenters' from data.
+
+churned - binary label attribute
+msisdn
+customer\_type 
+rateplan\_group
+rateplan\_name
+committed - whether the customer is committed at this point
+committed\_days - for how long is the customer committed
+commitment\_remaining - how many days till the end of the commitment
+callcenter\_calls\_count - count of phone calls with so called 'callcenters'
+callcenter\_calls\_duration - total duration of phone calls with so called 'callcenters'
+cc_\cnt\_X1 - count of phone calls with call center X1, where X1 is the number of the callcenter
+cc_\dur\_X1 - duration of phone calls with call center X1, where X1 is the number of the callcenter
+cc_\avg\_X1 - average duration of phone calls with call center X1, where X1 is the number of the callcenter
+cc_\std\_X1 - standard deviation of duration of phone calls with call center X1, where X1 is the number of the callcenter
+com\_degree
+com\_degree\_total
+com\_count\_in\_group
+com\_degree\_in\_group
+com\_score
+com\_group\_leader
+
+
+
+         'com_group_follower', 'com_churned_cnt', 'com_leader_churned_cnt
+
+
 
 

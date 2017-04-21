@@ -69,7 +69,8 @@ def prepare_sql_churn_base_data(churn_table_name, base_table_name, churn_from_da
 
 
 
-# PART 2 (TRAIN stage only: prepare top callcenters):
+# PART 2 (TRAIN stage only: prepare top callcenters)
+# i.e. the top N numbers with respect to the numbers called
 def prepare_sql_top_call_centers(cdr_from_date, cdr_to_date, cdr_table_name, base_table_name,
                                  number_of_callcenters, target_table_name):
     # MSISDN number of non-stk customers:
