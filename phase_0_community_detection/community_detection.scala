@@ -56,7 +56,7 @@ def load_edges(date_from: String, date_to: String, cdr_table: String) : org.apac
 }
 
 
-// takes data frame of edges and labeld vertices (returned by the community_detection function)
+// takes data frame of edges and labeled vertices (returned by the community_detection function)
 // returns a new data frame of edges, where only edges connecting vertices in the same cluster are kept
 def remove_intercluster_edges(edges: org.apache.spark.sql.DataFrame, labeled_vertices: org.apache.spark.sql.DataFrame) : org.apache.spark.sql.DataFrame = {
     val cols = edges.columns
@@ -117,9 +117,11 @@ def run(date_from: String, date_to: String, cdr_table: String, output_file: Stri
 }
 
 
+// create View of parquet data so it can be used in SQL queries
 val df1 = sqlContext.read.parquet("mlp_sampled_cdr_records.parquet")
 df1.createOrReplaceTempView("comm_cdr_records")
   
+
 log("Starting community detection")
 run("20160301", "20160401", "comm_cdr_records", "lpa_20160301_20160401.parquet")
 run("20160401", "20160501", "comm_cdr_records", "lpa_20160401_20160501.parquet")

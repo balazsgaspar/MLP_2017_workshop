@@ -98,27 +98,3 @@ def prepare_left_joined_table_sql(sqlContext, join_on, left_table_name=None, rig
     """
     return final_sql
 
-
-def does_table_exist(sqlContext, table_name):
-    """
-    Checks whether the given table exists in the Hive metastore.
-    :param sqlContext: current SQL Context.
-    :param table_name: full table name, i.e. <db_name>.<table_name>.
-    :return: True if the table exists, False otherwise.
-    """
-    db_name = re.sub(r"\..+", "", table_name)
-    table_name = re.sub(r".+\.", "", table_name)
-    if len(sqlContext.sql("SHOW TABLES in " + db_name).where("tableName = '" + table_name + "'").collect()) == 1:
-        return True
-    else:
-        return False
-
-
-def get_number_of_rows_in_table(sqlContext, table_name):
-    """
-    Gets the number of rows in the given table.
-    :param sqlContext: current SQL Context.
-    :param table_name: string with the table name.
-    :return: integer number.
-    """
-    return sqlContext.sql("SELECT COUNT(*) FROM " + table_name).collect()[0][0]

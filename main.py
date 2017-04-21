@@ -32,6 +32,23 @@ print('Phase 2 finised.')
 predictions = phase_3_classification.run(cfg, cfg_tables, sqlContext)
 print('Phase 3 finised.')
 
+predictionAndLabels = predictions.select("prediction", "label").rdd
+
+metrics = MulticlassMetrics(predictionAndLabels)
+metrics.confusionMatrix().toArray()
+
+metrics.accuracy
+
+metrics.precision(1.0)
+metrics.recall(1.0)
+metrics.fMeasure(1.0, beta=1.0)
+
+metrics.precision(0.0)
+metrics.recall(0.0)
+metrics.fMeasure(0.0, beta=1.0)
+
+
+
 
 split1_udf = udf(lambda value: value[0].item(), FloatType())
 split2_udf = udf(lambda value: value[1].item(), FloatType())
