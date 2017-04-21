@@ -84,29 +84,29 @@ Script *scripts/move_data.py* illustrates how to save parquet data from a remote
 NOTE: 'callcenters' are numbers behaving like callcenters - i.e. they call to a huge number of phone numbers.
 We select TOP 12 such 'callcenters' from data.
 
-churned - binary label attribute
-msisdn
-customer\_type 
-rateplan\_group
-rateplan\_name
-committed - whether the customer is committed at this point
-committed\_days - for how long is the customer committed
-commitment\_remaining - how many days till the end of the commitment
-callcenter\_calls\_count - count of phone calls with so called 'callcenters'
-callcenter\_calls\_duration - total duration of phone calls with so called 'callcenters'
-cc_\cnt\_X1 - count of phone calls with call center X1, where X1 is the number of the callcenter
-cc_\dur\_X1 - duration of phone calls with call center X1, where X1 is the number of the callcenter
-cc_\avg\_X1 - average duration of phone calls with call center X1, where X1 is the number of the callcenter
-cc_\std\_X1 - standard deviation of duration of phone calls with call center X1, where X1 is the number of the callcenter
-com\_degree - vertex degree in the graph used for community detection
-com\_degree\_total - vertex  degree within the community
-com\_count\_in\_group - number of vertices in the same community
-com\_degree\_in\_group - sum of degrees in the vertex's community
-com\_score - score computed as degree / degree\_in\_group 
-com\_group\_leader - boolean; whether the vertex has maximal score within the group
-com\_group\_follower - boolean; whether the vertex has minimal score within the group
-com\_churned\_cnt - how many customers from the community churned 
-com\_leader\_churned\_cnt - how many customer leaders from the community churned
+* churned - binary label attribute
+* msisdn
+* customer\_type 
+* rateplan\_group
+* rateplan\_name
+* committed - whether the customer is committed at this point
+* committed\_days - for how long is the customer committed
+* commitment\_remaining - how many days till the end of the commitment
+* callcenter\_calls\_count - count of phone calls with so called 'callcenters'
+* callcenter\_calls\_duration - total duration of phone calls with so called 'callcenters'
+* cc\_cnt\_X1 - count of phone calls with call center X1, where X1 is the number of the callcenter
+* cc\_dur\_X1 - duration of phone calls with call center X1, where X1 is the number of the callcenter
+* cc\_avg\_X1 - average duration of phone calls with call center X1, where X1 is the number of the callcenter
+* cc\_std\_X1 - standard deviation of duration of phone calls with call center X1, where X1 is the number of the callcenter
+* com\_degree - vertex degree in the graph used for community detection
+* com\_degree\_total - vertex  degree within the community
+* com\_count\_in\_group - number of vertices in the same community
+* com\_degree\_in\_group - sum of degrees in the vertex's community
+* com\_score - score computed as degree / degree\_in\_group 
+* com\_group\_leader - boolean; whether the vertex has maximal score within the group
+* com\_group\_follower - boolean; whether the vertex has minimal score within the group
+* com\_churned\_cnt - how many customers from the community churned 
+* com\_leader\_churned\_cnt - how many customer leaders from the community churned
 
 ... rest of the features represent various characteristics about phone calls.
 Duration of calls is always expressed in seconds.
