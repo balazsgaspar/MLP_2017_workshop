@@ -46,6 +46,11 @@ This part is divided into three phases:
 
 Evaluation of the model is performed outside of those phases for the sake of detailed illustration.
 
+## Other Information
+
+Directory *scripts* contains various python scripts for data exploration.
+Script *scripts/move_data.py* illustrates how to save parquet data from a remote AWS S3 repository to local repository.
+
 
 ## Input Data Description
 
@@ -74,11 +79,6 @@ Evaluation of the model is performed outside of those phases for the sake of det
 * msisdn: long - number of the customer
 * date\_key: string - date of the churn
 
-## Other Information
-
-Directory *scripts* contains various python scripts for data exploration.
-Script *move_data.py* illustrates how to save parquet data from a remote AWS S3 repository to local repository.
-
 ## Description of Features
 
 NOTE: 'callcenters' are numbers behaving like callcenters - i.e. they call to a huge number of phone numbers.
@@ -98,16 +98,21 @@ cc_\cnt\_X1 - count of phone calls with call center X1, where X1 is the number o
 cc_\dur\_X1 - duration of phone calls with call center X1, where X1 is the number of the callcenter
 cc_\avg\_X1 - average duration of phone calls with call center X1, where X1 is the number of the callcenter
 cc_\std\_X1 - standard deviation of duration of phone calls with call center X1, where X1 is the number of the callcenter
-com\_degree
-com\_degree\_total
-com\_count\_in\_group
-com\_degree\_in\_group
-com\_score
-com\_group\_leader
+com\_degree - vertex degree in the graph used for community detection
+com\_degree\_total - vertex  degree within the community
+com\_count\_in\_group - number of vertices in the same community
+com\_degree\_in\_group - sum of degrees in the vertex's community
+com\_score - score computed as degree / degree\_in\_group 
+com\_group\_leader - boolean; whether the vertex has maximal score within the group
+com\_group\_follower - boolean; whether the vertex has minimal score within the group
+com\_churned\_cnt - how many customers from the community churned 
+com\_leader\_churned\_cnt - how many customer leaders from the community churned
 
-
-
-         'com_group_follower', 'com_churned_cnt', 'com_leader_churned_cnt
+... rest of the features represent various characteristics about phone calls.
+Duration of calls is always expressed in seconds.
+More specifically, "dur" represents duration, "cnt" count, "avg" average, "std" standard deviation.
+There may be phone calls to people belonging to the same operator ("_t_") or different operator ("_not_t_"), or it is not differentiated ("all").
+Moreover, there may be distinction between incoming and outgoing calls.
 
 
 

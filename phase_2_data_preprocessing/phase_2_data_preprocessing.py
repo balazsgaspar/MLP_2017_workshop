@@ -4,8 +4,6 @@ from time import gmtime, strftime
 import numpy as np
 
 
-
-
 def log(message = ""):
     print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " " + message)
 
@@ -179,8 +177,6 @@ def run(cfg, cfg_tables, sqlContext):
     CALLCENTERS_ATTRIBUTES_PREFIX = "cc_"
     CALLS_ATTRIBUTES_PREFIXES = ["cnt", "dur", "avg", "std"]
     LABEL_ATTRIBUTE = "churned"
-#    COLUMNS_TO_BE_DROPPED = ['msisdn', 'customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
-#                             'calls_all_dur', 'calls_all_cnt']
     COLUMNS_TO_BE_DROPPED = ['customer_type', 'calls_non_t_dur', 'calls_non_t_cnt',
                              'calls_all_dur', 'calls_all_cnt']
     ALL_TRAIN_COLUMNS_WITHOUT_CC = np.array(
@@ -211,28 +207,6 @@ def run(cfg, cfg_tables, sqlContext):
     training_data = sqlContext.read.parquet(cfg_tables['TMP_TABLE_TRAIN'])
     predict_data = sqlContext.read.parquet(cfg_tables['TMP_TABLE_PREDICT'])
     
-#    # check the columns of the dataframes
-#    check_dataframe_columns(training_data, ALL_TRAIN_COLUMNS_WITHOUT_CC, "training_data")
-#    # the same for predict data set (but without the 'churned' column)
-#    check_dataframe_columns(predict_data, ALL_TRAIN_COLUMNS_WITHOUT_CC[ALL_TRAIN_COLUMNS_WITHOUT_CC != 'churned'],
-#                            "predict_data")
-#    # check that the dataframes contain required number of columns with the given prefix (of callcenters calls)
-#    check_dataframe_columns_using_pattern(training_data, "cc_dur", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "training_data")
-#    check_dataframe_columns_using_pattern(training_data, "cc_cnt", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "training_data")
-#    check_dataframe_columns_using_pattern(predict_data, "cc_dur", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "predict_data")
-#    check_dataframe_columns_using_pattern(predict_data, "cc_cnt", cfg['COMMON_TOP_CALLCENTERS_COUNT'], "predict_data")
-#    # check that the dataframes are not empty
-#    check_dataframe_nonemptiness(training_data, "training_data")
-#    check_dataframe_nonemptiness(predict_data, "predict_data")
-#    
-    # remove rows where committed IS NULL (this is a temporary fix because of noise in the base data)
-    # training_data = training_data[~training_data['committed'].isnull()].reset_index(drop=True)
-    # predict_data = predict_data[~predict_data['committed'].isnull()].reset_index(drop=True)
-    # TODO: overit ze to neni potreba
-    
-    # log("Getting msisdn values")
-    # msisdn_from_predict_data = predict_data['msisdn'].values
-    
     log("Removing unused columns")
     training_data = drop_unused_columns(training_data, COLUMNS_TO_BE_DROPPED)
     predict_data = drop_unused_columns(predict_data, COLUMNS_TO_BE_DROPPED)
@@ -240,14 +214,7 @@ def run(cfg, cfg_tables, sqlContext):
     log("Imputing NA values")
     training_data, predict_data = fill_na_cells(training_data, predict_data, CALLCENTERS_ATTRIBUTES_PREFIX, CALLS_ATTRIBUTES_PREFIXES)
     
-#    log("Converting columns to boolean")
-#    training_data = convert_columns_to_boolean(training_data, ['com_group_leader', 'com_group_follower', 'committed'])
-#    predict_data = convert_columns_to_boolean(predict_data, ['com_group_leader', 'com_group_follower', 'committed'])
-#    
-
     log("Converting columns to string")
-#    training_data = convert_columns_to_string(training_data, ['com_group_leader', 'com_group_follower', 'committed'])
-#    predict_data = convert_columns_to_string(predict_data, ['com_group_leader', 'com_group_follower', 'committed'])
     training_data = convert_columns_to_string(training_data, CATEGORICAL_ATTRIBUTES + [LABEL_ATTRIBUTE])
     predict_data = convert_columns_to_string(predict_data, CATEGORICAL_ATTRIBUTES + [LABEL_ATTRIBUTE])
     
@@ -261,9 +228,6 @@ def run(cfg, cfg_tables, sqlContext):
     training_data, predict_data = fillna("com_group_leader", "constant", training_data, predict_data, value='false')
     training_data, predict_data = fillna("com_group_follower", "constant", training_data, predict_data, value='false')
     training_data, predict_data = fillna("committed", "constant", training_data, predict_data, value='false')
-    
-    # check_dataframe_has_no_missing_values(training_data, "training_data")
-    # check_dataframe_has_no_missing_values(predict_data, "predict_data")
     
     training_data.write.parquet(cfg_tables['TABLE_TRAIN'], mode='overwrite')
     predict_data.write.parquet(cfg_tables['TABLE_PREDICT'], mode='overwrite')
