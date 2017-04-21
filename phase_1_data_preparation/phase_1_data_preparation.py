@@ -169,7 +169,7 @@ def run(cfg, cfg_tables, sqlContext):
     sql_test_6_df = execute_sql_query(sqlContext, sql_test_6)
     sql_test_6_df.createOrReplaceTempView(cfg_tables['TMP_TEST_CALL_ATTRIBUTES'])
     
-    log("Joining all data together")
+    log("Joining all data together and saving to parquet")
     # left join of attribute tables:
     # training data:
     sql_train_final = prepare_left_joined_table_sql(sqlContext, "msisdn", left_table_name=cfg_tables['TMP_TRAIN_TARGET_TABLE_2'],
@@ -197,6 +197,7 @@ def run(cfg, cfg_tables, sqlContext):
     
     sql_train_final_df.write.parquet(cfg_tables['TMP_TABLE_TRAIN'], mode='overwrite')
     sql_test_final_df.write.parquet(cfg_tables['TMP_TABLE_PREDICT'], mode='overwrite')
+    
     log("Phase 1 DONE")
 
     

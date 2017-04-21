@@ -232,3 +232,5 @@ def run(cfg, cfg_tables, sqlContext):
     training_data.write.parquet(cfg_tables['TABLE_TRAIN'], mode='overwrite')
     predict_data.write.parquet(cfg_tables['TABLE_PREDICT'], mode='overwrite')
     
+    log("Phase 2 DONE")
+    

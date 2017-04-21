@@ -3,8 +3,6 @@ from pyspark.ml.feature import StringIndexer, OneHotEncoder, VectorAssembler
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.feature import IndexToString, StringIndexer, VectorIndexer
-from pyspark.ml.evaluation import BinaryClassificationEvaluator
-from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 
 from time import gmtime, strftime
 
@@ -13,7 +11,16 @@ def log(message = ""):
     print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " " + message)
 
 
-def create_spark_ml_preprocessing_stages(label_attribute, categorical_attributes, all_cols):  
+def create_spark_ml_preprocessing_stages(label_attribute, categorical_attributes, all_cols):
+    """
+    Creates preprocessing stages for Spark ML library.
+    It encodes the categorical attributes by using the One hot encoder and
+    label attribute by using the String Indexer method.
+    :param label_attribute: name of the label attribute
+    :param categorical_attributes: list of names of categorical attributes
+    :param all_cols: list of names of all attributes
+    :return: list of stages
+    """  
     categorical_attributes_vec = [x + "_vec" for x in categorical_attributes] 
     numerical_attributes = list(set(all_cols) - set(categorical_attributes + [label_attribute, "msisdn"]))
   
@@ -35,6 +42,12 @@ def create_spark_ml_preprocessing_stages(label_attribute, categorical_attributes
   
 
 def sample_data(data):
+    """
+    Undersample the data with non-churned class
+    and oversample the data with churned data
+    :param data: dataframe to be sampled
+    :return: sample dataframe
+    """
     n_churned = data.filter("churned = 'true'").count()
     n_nonchurned = data.filter("churned = 'false'").count()
     undersample_ratio = n_churned * 15.0 / n_nonchurned
@@ -71,18 +84,13 @@ def run(cfg, cfg_tables, sqlContext):
     pipeline = Pipeline(stages=stages + [rf])
 
     training_data_sampled = sample_data(training_data)
-    print(training_data_sampled.groupBy("churned").count().show())
-    
-    
+    log("Class counts in sampled training data:")
+    training_data_sampled.groupBy("churned").count().show()
     
     model = pipeline.fit(training_data_sampled)
     predictions = model.transform(predict_data)
     
-    # stats
-    evaluator_roc = BinaryClassificationEvaluator(metricName="areaUnderROC")
-    print('Area under ROC: {}'.format(evaluator_roc.evaluate(predictions)))
-    
-    
+    log("Phase 3 DONE")
     
     return predictions
     
