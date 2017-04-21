@@ -73,8 +73,8 @@ def prepare_sql_churn_base_data(churn_table_name, base_table_name, churn_from_da
 # i.e. the top N numbers with respect to the numbers called
 def prepare_sql_top_call_centers(cdr_from_date, cdr_to_date, cdr_table_name, base_table_name,
                                  number_of_callcenters, target_table_name):
-    # MSISDN number of non-stk customers:
-    sql_nonstk_msisdn = """
+    # MSISDN number of non-telco customers:
+    sql_nontelco_msisdn = """
                 SELECT DISTINCT calls_nums.tomsisdn AS msisdn
                 FROM
                 (
@@ -86,11 +86,11 @@ def prepare_sql_top_call_centers(cdr_from_date, cdr_to_date, cdr_table_name, bas
                 (
                     SELECT DISTINCT SUBSTR(msisdn, 2, 12) AS msisdn
                     FROM """ + base_table_name + """
-                ) telecom_nums
-                ON calls_nums.tomsisdn=telecom_nums.msisdn WHERE telecom_nums.msisdn IS NULL
+                ) telco_nums
+                ON calls_nums.tomsisdn=telco_nums.msisdn WHERE telco_nums.msisdn IS NULL
     """
     # Calls from those MSISDN numbers
-    sql_nonstk_calls = """
+    sql_nontelco_calls = """
             SELECT calls_tab.tomsisdn, calls_tab.frommsisdn
             FROM
             (
@@ -101,18 +101,18 @@ def prepare_sql_top_call_centers(cdr_from_date, cdr_to_date, cdr_table_name, bas
             ) calls_tab
             JOIN
             (
-                """ + sql_nonstk_msisdn + """
+                """ + sql_nontelco_msisdn + """
             ) non_tel_nums
             ON calls_tab.tomsisdn = non_tel_nums.msisdn GROUP BY calls_tab.tomsisdn, calls_tab.frommsisdn
     
     
     """
-    # Create a table countig those calls for each non-stk msisdn
-    sql_create_nonstk_call_counts = """
+    # Create a table countig those calls for each non-telco msisdn
+    sql_create_nontelco_call_counts = """
         SELECT sel.tomsisdn AS msisdn, COUNT(sel.tomsisdn) as count_calls
         FROM
         (
-            """ + sql_nonstk_calls + """
+            """ + sql_nontelco_calls + """
         )
         sel WHERE tomsisdn>0
         GROUP BY tomsisdn
@@ -120,7 +120,7 @@ def prepare_sql_top_call_centers(cdr_from_date, cdr_to_date, cdr_table_name, bas
         LIMIT """ + str(number_of_callcenters) + """
         
     """
-    return sql_create_nonstk_call_counts
+    return sql_create_nontelco_call_counts
 
 
 # PART 3 (TRAIN and TEST)
@@ -220,11 +220,11 @@ def prepare_sql_callcenters_calls_cnt(cdr_table_name, cdr_from_date, cdr_to_date
 def prepare_sql_second_features(base_table_name, cdr_table_name, cdr_from_date, cdr_to_date,
                                 previous_table_name, target_table_name):
     # These should be distinct already:
-    sql_select_telecom_msisdn = """
+    sql_select_telco_msisdn = """
                         SELECT SUBSTR(msisdn, 2, 12) as msisdn
                         FROM """ + base_table_name + """
     """
-    sql_select_non_telecom_msisdn = """
+    sql_select_non_telco_msisdn = """
                     SELECT DISTINCT calls_nums.tomsisdn as msisdn
                     FROM
                     (
@@ -236,17 +236,17 @@ def prepare_sql_second_features(base_table_name, cdr_table_name, cdr_from_date, 
                     ) calls_nums
                     LEFT JOIN
                     (
-                    """ + sql_select_telecom_msisdn + """
-                    ) telecom_nums
-                    ON calls_nums.tomsisdn=telecom_nums.msisdn
-                    WHERE telecom_nums.msisdn IS NULL
+                    """ + sql_select_telco_msisdn + """
+                    ) telco_nums
+                    ON calls_nums.tomsisdn=telco_nums.msisdn
+                    WHERE telco_nums.msisdn IS NULL
     """
     sql_select_all_calls = """
                     SELECT tomsisdn, frommsisdn, duration
                     FROM """ + cdr_table_name + """
                     WHERE date_key >= """ + cdr_from_date + """ AND date_key < """ + cdr_to_date + """ 
     """
-    sql_select_all_calls_with_non_telecom = """
+    sql_select_all_calls_with_non_telco = """
                 SELECT all_calls.frommsisdn, all_calls.tomsisdn, all_calls.duration 
                 FROM
                 (
@@ -254,15 +254,15 @@ def prepare_sql_second_features(base_table_name, cdr_table_name, cdr_from_date, 
                 ) all_calls
                 JOIN
                 (
-                """ + sql_select_non_telecom_msisdn + """
-                ) nonstk_list
-                ON nonstk_list.msisdn = all_calls.tomsisdn
+                """ + sql_select_non_telco_msisdn + """
+                ) nontelco_list
+                ON nontelco_list.msisdn = all_calls.tomsisdn
     """
     sql_group_calls_non_tel = """
             SELECT sl.frommsisdn as msisdn, SUM(sl.duration) as calls_non_t_dur, COUNT(sl.frommsisdn) as calls_non_t_cnt
             FROM
             (
-            """ + sql_select_all_calls_with_non_telecom + """
+            """ + sql_select_all_calls_with_non_telco + """
             ) sl
             GROUP BY sl.frommsisdn
     """
@@ -307,7 +307,7 @@ def prepare_sql_second_features(base_table_name, cdr_table_name, cdr_from_date, 
 def prepare_sql_community_attributes(base_table_name, community_table_name, target_table_name,
                                      churn_table_name, cdr_to_date):
     # These should be distinct already:
-    sql_select_telecom_msisdn = """
+    sql_select_telco_msisdn = """
             SELECT SUBSTR(msisdn, 2, 12) as msisdn
             FROM """ + base_table_name + """
     """
@@ -341,7 +341,7 @@ def prepare_sql_community_attributes(base_table_name, community_table_name, targ
             t_right.leader_churned_cnt AS com_leader_churned_cnt
         FROM
         (
-        """ + sql_select_telecom_msisdn + """
+        """ + sql_select_telco_msisdn + """
         ) t_left 
         LEFT JOIN
         (
@@ -369,14 +369,14 @@ def create_call_atr_table(lb, ub, target_tab, cdr_tab, msisdn_table):
         WHERE frommsisdn!='' AND tomsisdn!='' AND date_key >='""" + lb + """' AND date_key<'""" + ub + """'"""
 
     select_all_calls_under_5s = select_all_calls + """ AND duration<6"""
-    select_all_telecom_msisdn = """
+    select_all_telco_msisdn = """
     SELECT DISTINCT frommsisdn as msisdn
     FROM """ + cdr_tab + """
     WHERE frommsisdn!='' AND date_key >='""" + lb + """' AND date_key<'""" + ub + """'"""
-    select_all_non_telecom_msisdn = """SELECT DISTINCT ac3.tomsisdn as msisdn FROM
+    select_all_non_telco_msisdn = """SELECT DISTINCT ac3.tomsisdn as msisdn FROM
                                     (""" + select_all_calls + """) ac3
                                     LEFT JOIN 
-                                    (""" + select_all_telecom_msisdn + """) snt3
+                                    (""" + select_all_telco_msisdn + """) snt3
                                     ON ac3.tomsisdn=snt3.msisdn WHERE snt3.msisdn IS NULL"""
     select_t_calls = """SELECT
                         ac1.record_type,
@@ -384,7 +384,7 @@ def create_call_atr_table(lb, ub, target_tab, cdr_tab, msisdn_table):
                         ac1.frommsisdn,
                         ac1.tomsisdn,
                         ac1.duration
-                        FROM (""" + select_all_calls + """) ac1 JOIN (""" + select_all_telecom_msisdn + """) snt1
+                        FROM (""" + select_all_calls + """) ac1 JOIN (""" + select_all_telco_msisdn + """) snt1
                         ON ac1.tomsisdn=snt1.msisdn 
                         """
     select_non_t_calls = """SELECT
@@ -393,7 +393,7 @@ def create_call_atr_table(lb, ub, target_tab, cdr_tab, msisdn_table):
                         ac2.frommsisdn,
                         ac2.tomsisdn,
                         ac2.duration
-                        FROM (""" + select_all_calls + """) ac2 JOIN (""" + select_all_non_telecom_msisdn + """) nsnt2
+                        FROM (""" + select_all_calls + """) ac2 JOIN (""" + select_all_non_telco_msisdn + """) nsnt2
                         ON ac2.tomsisdn=nsnt2.msisdn
                         """
 
@@ -408,7 +408,7 @@ def create_call_atr_table(lb, ub, target_tab, cdr_tab, msisdn_table):
                                       FROM 
                                 (""" + select_all_incoming_calls + """)
                                 inc_cls5 JOIN 
-                                (""" + select_all_telecom_msisdn + """)
+                                (""" + select_all_telco_msisdn + """)
                                 tems5
                                 ON inc_cls5.tomsisdn=tems5.msisdn
                                 """
@@ -421,7 +421,7 @@ def create_call_atr_table(lb, ub, target_tab, cdr_tab, msisdn_table):
                                       FROM 
                                 (""" + select_all_incoming_calls + """)
                                 inc_cls6 JOIN 
-                                (""" + select_all_non_telecom_msisdn + """)
+                                (""" + select_all_non_telco_msisdn + """)
                                 ntems6
                                 ON inc_cls6.tomsisdn=ntems6.msisdn
                                 """
@@ -435,7 +435,7 @@ def create_call_atr_table(lb, ub, target_tab, cdr_tab, msisdn_table):
                                       FROM 
                                 (""" + select_all_outgoing_calls + """)
                                 ot_cls7 JOIN 
-                                (""" + select_all_telecom_msisdn + """)
+                                (""" + select_all_telco_msisdn + """)
                                 tems7
                                 ON ot_cls7.tomsisdn=tems7.msisdn
                                 """
@@ -448,7 +448,7 @@ def create_call_atr_table(lb, ub, target_tab, cdr_tab, msisdn_table):
                                       FROM 
                                 (""" + select_all_outgoing_calls + """)
                                 ot_cls8 JOIN 
-                                (""" + select_all_non_telecom_msisdn + """)
+                                (""" + select_all_non_telco_msisdn + """)
                                 tems8
                                 ON ot_cls8.tomsisdn=tems8.msisdn
                                 """
